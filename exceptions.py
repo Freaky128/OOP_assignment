@@ -1,0 +1,2 @@
+class IncorrectMenuInput(Exception):
+    pass
