@@ -3,3 +3,12 @@ class IncorrectMenuInput(Exception):
 
 class UsernameAlreadyExists(Exception):
     pass
+
+class InvaildPlayerCount(Exception):
+    pass
+
+class InvaildUsername(Exception):
+    pass
+
+class DuplicatePlayer(Exception):
+    pass

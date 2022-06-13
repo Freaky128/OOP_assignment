@@ -1,5 +1,5 @@
 from exceptions import *
-
+import abc
 
 class WorldOfMasterMind:
     def __init__(self):
@@ -29,9 +29,9 @@ class WorldOfMasterMind:
         if menuInput == "r":
             self.registerUser()
         elif menuInput == "s":
-            pass
+            self.showScores()
         elif menuInput == "p":
-            pass
+            self.playGame()
         elif menuInput == "q":
             self.quit()
 
@@ -41,27 +41,79 @@ class WorldOfMasterMind:
             newUser = input("> ")
             if newUser in self.__users:
                 raise UsernameAlreadyExists
+            elif newUser == "HAL9000" or newUser == "VIKI":
+                raise InvaildUsername
             else:
                 self.__users[newUser] = User(newUser)
                 print("Welcome, ", newUser,"!\n", sep="")
 
         except UsernameAlreadyExists:
             print("Sorry, the name is already taken.\n")
+        except InvaildUsername:
+            print("Sorry, you cannot use that name.\n")
 
     def showScores(self):
         pass
 
     def playGame(self):
-        pass
+        print("Let's play the game of Mastermind!")
+        g = Game(self.__users)
+        g.gameSetUp()
+        del g
+        
 
     def quit(self):
         print("\nThank you for playing the World of Mastermind!\n")
         self.__isRunning = False
 
-class User:
+class Players(abc.ABC):
+    pass
+
+class User(Players):
     def __init__(self,username):
         self.__username = username
 
+class Game:
+    def __init__(self, users):
+        self.__users = users
+        self.__players = []
+
+    def gameSetUp(self):
+        print("How many players (2-4)?")
+        while True:
+            try:
+                self.__playerCount = int(input("> "))
+                if self.__playerCount < 2 or self.__playerCount > 4:
+                    raise InvaildPlayerCount
+                else:
+                    break
+            
+            except InvaildPlayerCount:
+                print("Must enter a number between 2 and 4 (inclusive)")
+            except ValueError: 
+                print("Must enter a number between 2 and 4 (inclusive)")
+        
+        for index in range(self.__playerCount):
+            # print(index)
+            while True:
+                try:
+                    print("What is the name of player #", index + 1,"?", sep="")
+                    username = input("> ")
+                    if username in self.__players:
+                        raise DuplicatePlayer
+                    elif username in self.__users:
+                        self.__players.append(username)
+                        # print(self.__players)
+                        break
+                    elif username == "HAL9000" or username == "VIKI":
+                        break
+                    else:
+                        raise InvaildUsername
+                    
+                except InvaildUsername:
+                    print("Invalid user name.")
+                except DuplicatePlayer:
+                    print(username, "is already in the game.")
 
 
 wom = WorldOfMasterMind()
