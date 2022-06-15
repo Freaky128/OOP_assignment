@@ -1,5 +1,4 @@
 from exceptions import *
-import abc
 
 class WorldOfMasterMind:
     def __init__(self):
@@ -59,6 +58,7 @@ class WorldOfMasterMind:
         print("Let's play the game of Mastermind!")
         g = Game(self.__users)
         g.gameSetUp()
+        g.setBoards()
         del g
         
 
@@ -66,17 +66,12 @@ class WorldOfMasterMind:
         print("\nThank you for playing the World of Mastermind!\n")
         self.__isRunning = False
 
-class Players(abc.ABC):
-    pass
-
-class User(Players):
-    def __init__(self,username):
-        self.__username = username
-
 class Game:
     def __init__(self, users):
         self.__users = users
         self.__players = []
+        self.__playerCount = 0
+        self.__numOfGuess = 0
 
     def gameSetUp(self):
         print("How many players (2-4)?")
@@ -106,6 +101,8 @@ class Game:
                         # print(self.__players)
                         break
                     elif username == "HAL9000" or username == "VIKI":
+                        self.__users[username] = Ai
+                        self.__players.append(username)
                         break
                     else:
                         raise InvaildUsername
@@ -114,6 +111,73 @@ class Game:
                     print("Invalid user name.")
                 except DuplicatePlayer:
                     print(username, "is already in the game.")
+
+        print("How many attempts will be allowed for each player (5-10)?")
+        while True:
+            try:
+                self.__numOfGuess = int(input("> "))
+                if self.__numOfGuess < 5 or self.__numOfGuess > 10:
+                    raise InvalidGuessNum
+                else:
+                    break
+            
+            except InvalidGuessNum:
+                print("Must enter a number between 5 and 10 (inclusive)")
+            except ValueError:
+                print("Must enter a number between 5 and 10 (inclusive)")
+
+    def setBoards(self):
+        index2 = 1
+        for index1 in range(self.__playerCount):
+            if index2 == self.__playerCount:
+                index2 = 0
+
+            print("* ", self.__players[index1], "'s turn to set the code for ", self.__players[index2], " to break", sep="")
+            self.__users[self.__players[index2]].setBoard()
+            
+
+            index2 += 1
+
+class Players:
+    def __init__(self):
+        pass
+    
+    def setBoard(self):
+        print("Please enter the code:")
+        while True:
+            try:
+                code = str(input("> "))
+                if len(code) > 4:
+                    raise InvalidCode
+                else:
+                    for index in range(4):
+                        print(code[index])
+                        if code[index] not in ["R", "G", "B", "Y", "W", "K"]:
+                            raise InvalidCode
+                    
+                    self.__codeBoard = CodeBoard(code)
+                    break
+            
+            except InvalidCode:
+                print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
+            except ValueError:
+                print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
+                        
+
+class User(Players):
+    def __init__(self,username):
+        self.__username = username
+        self.__score = 0
+        self.__numGame = 0
+
+class Ai(Players):
+    pass
+
+class CodeBoard:
+    def __init__(self, code):
+        self.__code = code
+        self.__feedback = ""
+        self.__numOfAttempts = 0
 
 
 wom = WorldOfMasterMind()

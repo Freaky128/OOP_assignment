@@ -12,3 +12,9 @@ class InvaildUsername(Exception):
 
 class DuplicatePlayer(Exception):
     pass
+
+class InvalidGuessNum(Exception):
+    pass
+
+class InvalidCode(Exception):
+    pass
