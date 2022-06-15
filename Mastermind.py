@@ -133,16 +133,15 @@ class Game:
                 index2 = 0
 
             print("* ", self.__players[index1], "'s turn to set the code for ", self.__players[index2], " to break", sep="")
-            self.__users[self.__players[index2]].setBoard()
+            self.__users[self.__players[index1]].setOpponentBoard(self.__users[self.__players[index2]])
             
-
             index2 += 1
 
 class Players:
     def __init__(self):
-        pass
+        self.__decodeBoard = DecodeBoard()
     
-    def setBoard(self):
+    def setOpponentBoard(self, opponent):
         print("Please enter the code:")
         while True:
             try:
@@ -155,17 +154,21 @@ class Players:
                         if code[index] not in ["R", "G", "B", "Y", "W", "K"]:
                             raise InvalidCode
                     
-                    self.__codeBoard = CodeBoard(code)
+                    opponent.setCode(code)
                     break
             
             except InvalidCode:
                 print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
             except ValueError:
                 print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
+
+    def setCode(self, code):
+        self.__decodeBoard.setCode(code)
                         
 
 class User(Players):
     def __init__(self,username):
+        super().__init__()
         self.__username = username
         self.__score = 0
         self.__numGame = 0
@@ -173,11 +176,17 @@ class User(Players):
 class Ai(Players):
     pass
 
-class CodeBoard:
-    def __init__(self, code):
-        self.__code = code
+class DecodeBoard:
+    def __init__(self):
         self.__feedback = ""
         self.__numOfAttempts = 0
+
+    def setCode(self, code):
+        self.__code = Code(code) 
+
+class Code:
+    def __init__(self, code):
+        self.__code = code
 
 
 wom = WorldOfMasterMind()
