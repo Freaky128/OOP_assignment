@@ -1,4 +1,5 @@
 from exceptions import *
+import random
 
 class WorldOfMasterMind:
     def __init__(self):
@@ -59,6 +60,7 @@ class WorldOfMasterMind:
         g = Game(self.__users)
         g.gameSetUp()
         g.setBoards()
+        g.playRounds()
         del g
         
 
@@ -101,7 +103,7 @@ class Game:
                         # print(self.__players)
                         break
                     elif username == "HAL9000" or username == "VIKI":
-                        self.__users[username] = Ai
+                        self.__users[username] = Ai()
                         self.__players.append(username)
                         break
                     else:
@@ -133,9 +135,19 @@ class Game:
                 index2 = 0
 
             print("* ", self.__players[index1], "'s turn to set the code for ", self.__players[index2], " to break", sep="")
+            print(self.__players[index1])
+            print(self.__players[index2])
+            print(self.__users[self.__players[index1]])
+            print(self.__users[self.__players[index2]])
             self.__users[self.__players[index1]].setOpponentBoard(self.__users[self.__players[index2]])
+
+            print("The code is now set for", self.__players[index2], "to break.\n")
             
             index2 += 1
+
+    def playRounds(self):
+        pass
+
 
 class Players:
     def __init__(self):
@@ -174,7 +186,14 @@ class User(Players):
         self.__numGame = 0
 
 class Ai(Players):
-    pass
+    def setOpponentBoard(self, opponent):
+        letters = ["R", "G", "B", "Y", "W", "K"]
+        code = ""
+        for index in range(4):
+            code += random.choice(letters)
+        
+        print("DEBUG:", code)
+        opponent.setCode(code)
 
 class DecodeBoard:
     def __init__(self):
