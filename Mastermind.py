@@ -7,12 +7,12 @@ class WorldOfMasterMind:
         self.__users = {}
     
     def run(self):
-        print("Welcome to the World of Mastermind! \nDeveloped by Alan Turing \nCOMP 1048 Object-Oriented Programming\n")
+        print("Welcome to the World of Mastermind! \nDeveloped by Alan Turing \nCOMP 1048 Object-Oriented Programming")
         while self.__isRunning:
             self.presentMenu()
 
     def presentMenu(self):
-        print("what would you like to do?")
+        print("\nwhat would you like to do?")
         print("(r) register a new user \n(s) show the score board \n(p) play a game \n(q) quit")
         
         while True:
@@ -45,25 +45,25 @@ class WorldOfMasterMind:
                 raise InvaildUsername
             else:
                 self.__users[newUser] = User(newUser)
-                print("Welcome, ", newUser,"!\n", sep="")
+                print("Welcome, ", newUser,"!", sep="")
 
         except UsernameAlreadyExists:
-            print("Sorry, the name is already taken.\n")
+            print("Sorry, the name is already taken.")
         except InvaildUsername:
-            print("Sorry, you cannot use that name.\n")
+            print("Sorry, you cannot use that name.")
 
     def showScores(self):
         pass
 
     def playGame(self):
         print("Let's play the game of Mastermind!")
+        print(self.__users)
         g = Game(self.__users)
         g.gameSetUp()
         g.setBoards()
         g.playRounds()
         g.endGame()
         del g
-        
 
     def quit(self):
         print("\nThank you for playing the World of Mastermind!\n")
@@ -71,10 +71,10 @@ class WorldOfMasterMind:
 
 class Game:
     def __init__(self, users):
-        self.__users = users
+        self.__users = users.copy()
         self.__players = []
         self.__playerCount = 0
-        self.__numOfGuess = 0
+        self.numOfGuess = 0
         self.roundNum = 0
 
     def gameSetUp(self):
@@ -105,7 +105,7 @@ class Game:
                         # print(self.__players)
                         break
                     elif username == "HAL9000" or username == "VIKI":
-                        self.__users[username] = Ai()
+                        self.__users[username] = Ai(username)
                         self.__players.append(username)
                         break
                     else:
@@ -119,8 +119,8 @@ class Game:
         print("How many attempts will be allowed for each player (5-10)?")
         while True:
             try:
-                self.__numOfGuess = int(input("> "))
-                if self.__numOfGuess < 5 or self.__numOfGuess > 10:
+                self.numOfGuess = int(input("> "))
+                if self.numOfGuess < 5 or self.numOfGuess > 10:
                     raise InvalidGuessNum
                 else:
                     break
@@ -145,7 +145,7 @@ class Game:
 
     def playRounds(self):
         solvedCount = 0
-        for self.roundNum in range(self.__numOfGuess):
+        for self.roundNum in range(self.numOfGuess):
             for index in range(self.__playerCount):
                 if not self.__users[self.__players[index]].solved:
                     print("\n* ", self.__players[index], "'s turn to guess the code.", sep="")
@@ -153,34 +153,65 @@ class Game:
                     if self.roundNum > 0:
                         print("==============\nCode Feedback\n==============")
                         print(self.__users[self.__players[index]].getPreviousFeedback(), "==============", sep="")
-                    print("Attempts left:", (self.__numOfGuess - self.roundNum))
+                    print("Attempts left:", (self.numOfGuess - self.roundNum))
                     
                     feedback = self.__users[self.__players[index]].makeGuess()
                     if self.__users[self.__players[index]].solved:
                         print(self.__players[index], "broke the code in", self.roundNum + 1, "attempts!")
-                        self.__users[self.__players[index]].numOfAttempts = self.roundNum + 1
                         solvedCount += 1
                     else:
                         print("Feedback:", feedback)
+
+                    self.__users[self.__players[index]].numOfAttempts = self.roundNum + 1
 
             if solvedCount == self.__playerCount:
                 break
 
     def endGame(self):
-        pass
+        for index1 in range(self.__playerCount):
+            if not self.__users[self.__players[index1]].solved:
+                print(self.__players[index1], "failed to break the code.")
+        
+        print("\nThe game is now finished.")
+        index3 = 1
+        for index2 in range(self.__playerCount):
+            if index3 == self.__playerCount:
+                index3 = 0
+            
+            if not self.__players[index2] in ["HAL9000", "VIKI"]:
+                if self.__users[self.__players[index2]].solved:
+                    score1 = (self.numOfGuess - self.__users[self.__players[index2]].numOfAttempts) + 1
+                else:
+                    score1 = 0
+
+                if self.__users[self.__players[index3]].solved:
+                    score2 = self.__users[self.__players[index3]].numOfAttempts - 1
+                else:
+                    score2 = self.numOfGuess
+
+                print(self.__players[index2], "receives", score1, "+", score2, "=", score1 + score2, "points.")
+
+                self.__users[self.__players[index2]].addScore(score1 + score2)
+            
+            index3 += 1
+
+        for index4 in range(self.__playerCount):
+            self.__users[self.__players[index4]].solved = False
+            self.__users[self.__players[index4]].numOfAttempts = True
     
 class Players:
-    def __init__(self):
-        self.__decodeBoard = DecodeBoard()
+    def __init__(self, username):
+        self.decodeBoard = DecodeBoard()
         self.solved = False
         self.numOfAttempts = 0
+        self.username = username
     
     def setOpponentBoard(self, opponent):
         print("Please enter the code:")
         while True:
             try:
                 code = str(input("> "))
-                if len(code) > 4:
+                if len(code) > 4 or len(code) < 4:
                     raise InvalidCode
                 else:
                     for index in range(4):
@@ -196,23 +227,24 @@ class Players:
                 print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
 
     def setCode(self, code):
-        self.__decodeBoard.setCode(code)
+        self.decodeBoard.setCode(code)
 
     def makeGuess(self):
         print("Please enter the code:")
         while True:
             try:
                 guess = str(input("> "))
-                if len(guess) > 4:
+                if len(guess) > 4 or len(guess) < 4:
                     raise InvalidCode
                 else:
                     for index in range(4):
                         if guess[index] not in ["R", "G", "B", "Y", "W", "K"]:
                             raise InvalidCode
                     
-                    feedback = self.__decodeBoard.evaluateGuess(guess)
-                    if self.__decodeBoard.solved:
+                    feedback = self.decodeBoard.evaluateGuess(guess)
+                    if self.decodeBoard.solved:
                         self.solved = True
+                        self.decodeBoard.solved = False
                     
                     return feedback
                                 
@@ -222,17 +254,23 @@ class Players:
                 print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
 
     def getPreviousFeedback(self):
-        return self.__decodeBoard.getPreviousFeedback()
-                        
+        return self.decodeBoard.getPreviousFeedback()        
 
 class User(Players):
-    def __init__(self,username):
-        super().__init__()
-        self.__username = username
+    def __init__(self, username):
+        super().__init__(username)
         self.__score = 0
         self.__numGame = 0
 
+    def addScore(self, score):
+        self.__score += score
+        self.__numGame += 1
+        print(self.__score)
+
 class Ai(Players):
+    def __init__(self, username):
+        super().__init__(username)
+
     def setOpponentBoard(self, opponent):
         letters = ["R", "G", "B", "Y", "W", "K"]
         code = ""
@@ -241,6 +279,19 @@ class Ai(Players):
         
         print("DEBUG:", code)
         opponent.setCode(code)
+
+    def makeGuess(self):
+        letters = ["R", "G", "B", "Y", "W", "K"]
+        guess = ""
+        for index in range(4):
+            guess += random.choice(letters)
+
+        print(self.username, "'s guess: ", guess, sep="")
+        feedback = self.decodeBoard.evaluateGuess(guess)
+        if self.decodeBoard.solved:
+            self.solved = True
+        
+        return feedback
 
 class DecodeBoard:
     def __init__(self):
