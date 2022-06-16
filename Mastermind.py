@@ -61,6 +61,7 @@ class WorldOfMasterMind:
         g.gameSetUp()
         g.setBoards()
         g.playRounds()
+        g.endGame()
         del g
         
 
@@ -74,6 +75,7 @@ class Game:
         self.__players = []
         self.__playerCount = 0
         self.__numOfGuess = 0
+        self.roundNum = 0
 
     def gameSetUp(self):
         print("How many players (2-4)?")
@@ -134,24 +136,44 @@ class Game:
             if index2 == self.__playerCount:
                 index2 = 0
 
-            print("* ", self.__players[index1], "'s turn to set the code for ", self.__players[index2], " to break", sep="")
-            print(self.__players[index1])
-            print(self.__players[index2])
-            print(self.__users[self.__players[index1]])
-            print(self.__users[self.__players[index2]])
+            print("\n* ", self.__players[index1], "'s turn to set the code for ", self.__players[index2], " to break", sep="")
             self.__users[self.__players[index1]].setOpponentBoard(self.__users[self.__players[index2]])
 
-            print("The code is now set for", self.__players[index2], "to break.\n")
+            print("The code is now set for", self.__players[index2], "to break.")
             
             index2 += 1
 
     def playRounds(self):
+        solvedCount = 0
+        for self.roundNum in range(self.__numOfGuess):
+            for index in range(self.__playerCount):
+                if not self.__users[self.__players[index]].solved:
+                    print("\n* ", self.__players[index], "'s turn to guess the code.", sep="")
+                    print("Previous attempts:", self.roundNum)
+                    if self.roundNum > 0:
+                        print("==============\nCode Feedback\n==============")
+                        print(self.__users[self.__players[index]].getPreviousFeedback(), "==============", sep="")
+                    print("Attempts left:", (self.__numOfGuess - self.roundNum))
+                    
+                    feedback = self.__users[self.__players[index]].makeGuess()
+                    if self.__users[self.__players[index]].solved:
+                        print(self.__players[index], "broke the code in", self.roundNum + 1, "attempts!")
+                        self.__users[self.__players[index]].numOfAttempts = self.roundNum + 1
+                        solvedCount += 1
+                    else:
+                        print("Feedback:", feedback)
+
+            if solvedCount == self.__playerCount:
+                break
+
+    def endGame(self):
         pass
-
-
+    
 class Players:
     def __init__(self):
         self.__decodeBoard = DecodeBoard()
+        self.solved = False
+        self.numOfAttempts = 0
     
     def setOpponentBoard(self, opponent):
         print("Please enter the code:")
@@ -162,7 +184,6 @@ class Players:
                     raise InvalidCode
                 else:
                     for index in range(4):
-                        print(code[index])
                         if code[index] not in ["R", "G", "B", "Y", "W", "K"]:
                             raise InvalidCode
                     
@@ -176,6 +197,32 @@ class Players:
 
     def setCode(self, code):
         self.__decodeBoard.setCode(code)
+
+    def makeGuess(self):
+        print("Please enter the code:")
+        while True:
+            try:
+                guess = str(input("> "))
+                if len(guess) > 4:
+                    raise InvalidCode
+                else:
+                    for index in range(4):
+                        if guess[index] not in ["R", "G", "B", "Y", "W", "K"]:
+                            raise InvalidCode
+                    
+                    feedback = self.__decodeBoard.evaluateGuess(guess)
+                    if self.__decodeBoard.solved:
+                        self.solved = True
+                    
+                    return feedback
+                                
+            except InvalidCode:
+                print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
+            except ValueError:
+                print("Invalid code.\nIt must be exactly four characters, each can be R, G, B, Y, W, or K.")
+
+    def getPreviousFeedback(self):
+        return self.__decodeBoard.getPreviousFeedback()
                         
 
 class User(Players):
@@ -197,15 +244,47 @@ class Ai(Players):
 
 class DecodeBoard:
     def __init__(self):
-        self.__feedback = ""
-        self.__numOfAttempts = 0
+        self.__previousFeedback = ""
+        self.solved = False
 
     def setCode(self, code):
         self.__code = Code(code) 
 
+    def evaluateGuess(self, guess):
+        self.__previousFeedback += (guess + " ")
+        answer = list(self.__code.getCode())
+        guess = list(guess)
+        feedback = ""
+
+        for index in range(4):
+            if guess[index] == answer[index]:
+                feedback += "K "
+                guess[index] = "1"
+                answer[index] = "0"
+
+        for index2 in range(4):
+            if guess[index2] in answer:
+                feedback += "W "
+                answer.remove(guess[index2])
+        
+        if feedback == "K K K K ":
+            self.solved = True
+            self.__previousFeedback = ""
+        else:
+            self.__previousFeedback += (feedback + "\n")
+        
+        return feedback # obviously needs to have formating fixed and passed back instead of being printed here potential. will need to add a lot of formating for second guesses.
+
+    def getPreviousFeedback(self):
+        return self.__previousFeedback
+
+
 class Code:
     def __init__(self, code):
         self.__code = code
+
+    def getCode(self):
+        return self.__code
 
 
 wom = WorldOfMasterMind()
