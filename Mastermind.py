@@ -1,3 +1,13 @@
+#
+# File: Mastermind.py
+# Descrition: This module is a recreation of the game Mastermind. 2-4 player can play each other or the computer.
+# Author: Matthew Freak
+# Student ID: 110348401
+# Email ID: fremk005
+# This is my own work as defined by
+# the University's Academic Misconduct Policy.
+#
+
 from exceptions import *
 import random
 
@@ -53,11 +63,19 @@ class WorldOfMasterMind:
             print("Sorry, you cannot use that name.")
 
     def showScores(self):
-        pass
+        print("=====================================")
+        print("Name             Score Games Average ")
+        print("=====================================")
+        
+        for users in self.__users:
+            print(format(self.__users[users].username, '<19s'), end='')
+            print(format(self.__users[users].getScore(), '>3d'), end='')
+            print(format(self.__users[users].getGames(), '>6d'), end='')
+            print(format(self.__users[users].getScore()/self.__users[users].getGames(), '>8.1f'))
+        print("=====================================")
 
     def playGame(self):
         print("Let's play the game of Mastermind!")
-        print(self.__users)
         g = Game(self.__users)
         g.gameSetUp()
         g.setBoards()
@@ -93,7 +111,6 @@ class Game:
                 print("Must enter a number between 2 and 4 (inclusive)")
         
         for index in range(self.__playerCount):
-            # print(index)
             while True:
                 try:
                     print("What is the name of player #", index + 1,"?", sep="")
@@ -102,7 +119,6 @@ class Game:
                         raise DuplicatePlayer
                     elif username in self.__users:
                         self.__players.append(username)
-                        # print(self.__players)
                         break
                     elif username == "HAL9000" or username == "VIKI":
                         self.__users[username] = Ai(username)
@@ -265,7 +281,12 @@ class User(Players):
     def addScore(self, score):
         self.__score += score
         self.__numGame += 1
-        print(self.__score)
+
+    def getScore(self):
+        return self.__score
+
+    def getGames(self):
+        return self.__numGame
 
 class Ai(Players):
     def __init__(self, username):
@@ -324,7 +345,7 @@ class DecodeBoard:
         else:
             self.__previousFeedback += (feedback + "\n")
         
-        return feedback # obviously needs to have formating fixed and passed back instead of being printed here potential. will need to add a lot of formating for second guesses.
+        return feedback
 
     def getPreviousFeedback(self):
         return self.__previousFeedback
